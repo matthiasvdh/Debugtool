@@ -11,8 +11,9 @@
   "dependencies": {
     "eonasdan-bootstrap-datetimepicker": "^4.15.35",
     "jquery": "^1.11.3",
-    "underscore": "^1.8.3",
-    "moment": "~2.8"
+    "moment": "~2.8",
+    "papaparse": "^4.1.2",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "gulp": "^3.8.11",

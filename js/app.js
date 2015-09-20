@@ -2,6 +2,7 @@ _ = require('underscore');
 $ = require('jquery');
 moment = require('moment');
 datepicker = require('eonasdan-bootstrap-datetimepicker');
+Papa = require("papaparse");
 
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
@@ -94,8 +95,13 @@ function companyReceived(response) {
     var toDate = $('#todatetimepicker').data("DateTimePicker").date();
     var toTimestamp = toDate.unix();
 
+    // Call-events
     var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "calls");
     downloadFromUrl(userEventDownloadUrl, "calls");
+
+    // User-events
+    var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "users");
+    downloadFromUrl(userEventDownloadUrl, "users");
 
     //console.log(userEventDownloadUrl);
 }
@@ -143,17 +149,48 @@ function downloadFromUrl(url, type) {
 }
 
 function downloadDone(response) {
-    console.log(response);
     var responseText = response.target.responseText;
     var type = response.target.eventType;
 
-    blob = new Blob([responseText], {
-        type: 'text/csv'
-    })
+    // Parse the CSV
+    var papaObj = Papa.parse(responseText, {
+        header: true,
+        dynamicTyping: true
+    });
+    var parsed = papaObj.data;
 
-    var url = URL.createObjectURL(blob)
-    document.getElementById('downloadcalls').href = url;
+    // Re-format the time
+    for (var key in parsed) {
+        var row = parsed[key];
+
+        if (row.timestamp) {
+            var timeObj = moment.unix(row.timestamp);
+            //console.log(timeObj);
+            row.formattedTime = timeObj.format("Do MMMM YYYY, H:mm:ss");
+        }
+    }
+
+    // Order by call-id first and timestamp second.
+    //parsed = _.sortBy(parsed, "timestamp");
+    parsed = _.sortBy(parsed, "call_id");
+    //console.log(parsed);
+
+    // unparse csv
+    var newCsv = Papa.unparse(parsed, {
+        quotes: {"call_id" : true}
+    });
+    //console.log(newCsv);
+
+     blob = new Blob([newCsv], {
+        type: 'text/csv'
+     })
+
+     var url = URL.createObjectURL(blob)
+     document.getElementById('download'+type).href = url;
+
+    console.log("Done processing, enabling download link: " + 'download'+type);
 }
+
 
 function errorMessage(msg) {
     console.log(msg);
