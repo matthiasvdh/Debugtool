@@ -128,29 +128,28 @@ function downloadFromUrl(url, type) {
     // We use a proxy, because the event-log doesn't have CORS headers.
     var proxyUrl = "https://bedienpost.nl/proxy.php?url=" + url + "&mode=native";
 
-    /*$.ajax
-    ({
-        type: "GET",
-        headers: {
-            "Authorization": authHeader,
-        },
-        url: proxyUrl,
-        //dataType: 'json',
-        success: downloadDone,
-        error: function(err) {errorMessage("Error downloading data from " + url); console.log(err);}
-    });*/
     var xhr = new XMLHttpRequest();
     xhr.eventType = type;
     xhr.open("GET", proxyUrl, true);
     xhr.setRequestHeader("Authorization", authHeader);
-    xhr.onprogress = downloadDone
+    xhr.onreadystatechange = downloadDone
     xhr.send()
 
 }
 
 function downloadDone(response) {
-    var responseText = response.target.responseText;
+
     var type = response.target.eventType;
+    if (response.target.readyState != 4) {
+        return;
+    }
+    if (response.target.status != 200) {
+        errorMessage("Failed to download " + type + " from server.");
+        console.log(response);
+    }
+
+    var responseText = response.target.responseText;
+
 
     // Parse the CSV
     var papaObj = Papa.parse(responseText, {
