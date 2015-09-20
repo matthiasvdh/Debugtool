@@ -3,6 +3,9 @@
 <head>
     <title>Compass Event Logs</title>
     <script src="bundle.js"></script>
+    <script type="text/javascript"  src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
     <!-- <link href="client.css" rel="stylesheet" type="text/css" /> -->
 </head>
@@ -38,6 +41,39 @@
 
     </div>
 
+</div>
+
+<div class="datepickers">
+    <div class="row">
+        <div class='col-md-2'>
+            <div class="form-group">
+                vanaf: <div class='input-group date' id='fromdatetimepicker'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class='col-md-2'>
+            <div class="form-group">
+                tot: <div class='input-group date' id='todatetimepicker'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+
+    </div>
+</div>
+
+<div class="download_links">
+    <a id="downloadcalls" download="calls.csv">Download call-events</a>
+    <a id="downloadusers" download="users.csv">Download user-events</a>
 </div>
 
 </body>

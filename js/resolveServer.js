@@ -105,6 +105,7 @@
 
         dnsLookupDeferred.done(function() {
             res.jid = res.username + "@" + res.domain;
+            res.base_domain = getEnvWithPrefix("", res.xmpp_server);
             res.bosh_server = getEnvWithPrefix("bosh", res.xmpp_server);
             res.rest_server = getEnvWithPrefix("rest", res.xmpp_server);
             console.log("Login parsed:");
