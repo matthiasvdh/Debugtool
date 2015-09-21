@@ -194,7 +194,7 @@ function downloadDone(response) {
         if (row.timestamp) {
             var timeObj = moment.unix(row.timestamp);
             //console.log(timeObj);
-            row.formattedTime = timeObj.format("Do MMMM YYYY, H:mm:ss");
+            row.formattedTime = timeObj.format("D/M/YY H:mm:ss");
         }
     }
 
