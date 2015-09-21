@@ -190,12 +190,15 @@ function downloadDone(response) {
 
     var responseText = response.target.responseText;
 
+    var startTime = Date.now();
+
     // Parse the CSV
     var papaObj = Papa.parse(responseText, {
         header: true,
         dynamicTyping: true
     });
     var parsed = papaObj.data;
+    var size = _.size(parsed);
 
     // Re-format the time
     for (var key in parsed) {
@@ -208,12 +211,12 @@ function downloadDone(response) {
     }
 
     // Order by timestamp, but group by call_id.
-    grouped = _.groupBy(parsed, "call_id");
+    var grouped = _.groupBy(parsed, "call_id");
     //console.log(grouped);
+
     var parsed = [];
     for (var key in grouped) {
-        var obj = grouped[key];
-        parsed = parsed.concat(obj);
+        Array.prototype.push.apply(parsed, grouped[key]);
     }
 
     // unparse csv
@@ -232,6 +235,9 @@ function downloadDone(response) {
     console.log("Done processing, enabling download link: " + 'download'+type);
     $('#downloadlinks').show();
     $('#download'+type).show();
+
+    var endTime = Date.now();
+    console.log("Processing of " + size + " elements took: " + (endTime - startTime) + "ms");
 }
 
 
