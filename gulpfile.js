@@ -19,10 +19,11 @@ gulp.task('browserify', function() {
 gulp.task('copy', function() {
     gulp.src(['*.html']).pipe(gulp.dest(destination));
     gulp.src(["node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css"]).pipe(gulp.dest(destination));
+    gulp.src(["css/*.css"]).pipe(gulp.dest(destination));
 })
 
 /** With 'gulp watch', automatically rebuild whenever the project changes. */
 gulp.task('watch', function () {
     gulp.watch(['js/*.js', 'lib/*.js'], ['browserify']);
-    gulp.watch(['*.html'], ['copy']);
+    gulp.watch(['*.html','css/*.css'], ['copy']);
 });

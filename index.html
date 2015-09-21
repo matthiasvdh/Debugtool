@@ -6,8 +6,7 @@
     <script type="text/javascript"  src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-
-    <!-- <link href="client.css" rel="stylesheet" type="text/css" /> -->
+    <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
@@ -22,16 +21,14 @@
     <div id="quadrants">
 
         <div class="login">
-            <div class="title">Log in</div>
+            <div class="title"><h4>Log in</h4></div>
             <div id="login_error" style="display: none"></div>
 
             <div>
                 <form id="login_form" action="">
-                    <ul>
-                        <li><label>Username:</label><input type="text" id="login_username" size="50" /></li>
-                        <li><label>Password:</label><input type="password" id="login_password" size="50" /></li>
-                        <li><input type="submit" id="login_submit" value="Log in" /></li>
-                    </ul>
+                        <div><label>Username:</label><input type="text" id="login_username" size="50" /></div>
+                        <div><label>Password:</label><input type="password" id="login_password" size="50" /></div>
+                        <div><input type="submit" id="login_submit" class="button" value="Log in" /></div>
                 </form>
 
 
@@ -44,8 +41,7 @@
 </div>
 
 <div id="datepickers" class="datepickers" style='display: none'>
-    <div class="row">
-        <div class='col-md-2'>
+    <div class="row datepickers-inner">
             <div class="form-group">
                 vanaf: <div class='input-group date' id='fromdatetimepicker'>
                     <input type='text' class="form-control" />
@@ -54,8 +50,6 @@
                     </span>
                 </div>
             </div>
-        </div>
-        <div class='col-md-2'>
             <div class="form-group">
                 tot: <div class='input-group date' id='todatetimepicker'>
                     <input type='text' class="form-control" />
@@ -64,20 +58,19 @@
                     </span>
                 </div>
             </div>
-        </div>
     </div>
     <div>
         <label>Company-id:</label><input type="text" id="company_id_field" placeholder="Please enter a valid company-id." size="50"/>
     </div>
     <div>
-        <input type="submit" id="download_button" value="Download" /></li>
+        <input type="submit" id="download_button" class="button" value="Download" /></li>
     </div>
 </div>
 
 <div id="downloadlinks" class="download_links" style='display: none'>
     <div><a id="downloadcalls" download="calls.csv" style='display: none'>Download call-events</a></div>
     <div><a id="downloadusers" download="users.csv" style='display: none'>Download user-events</a></div>
-    <div><input type="submit" id="goback_button" value="Go Back" /></div>
+    <div><input type="submit" id="goback_button" class="button" value="Go Back" /></div>
 </div>
 
 </body>

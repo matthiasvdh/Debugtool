@@ -1,0 +1,36 @@
+body {
+    padding-top: 50px;
+}
+
+#loginheader {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.login {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.datepickers {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.datepickers-inner {
+    width: 280px;
+    margin: 0 auto;
+}
+
+.download_links {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.button {
+    margin-top: 30px;
+}
+
+label {
+    margin-right: 10px;
+}
