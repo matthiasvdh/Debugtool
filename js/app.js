@@ -6,18 +6,28 @@ Papa = require("papaparse");
 
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
+
+var dateFormat = "D/MM/YY H:mm:ss";
+
 var parseLoginDeferred = null;
 var parsedLogin = null;
 var loggedIn = false;
 var authHeader = null;
+
 
 $(document).ready(function() {
 
     // Initialize date-pickers, on the beginning of the day and the current time respectively.
     var today = moment({hour: 0, minute: 0, seconds: 0, milliseconds: 0});
     var now = moment();
-    $('#fromdatetimepicker').datetimepicker({defaultDate: today});
-    $('#todatetimepicker').datetimepicker({defaultDate: now});
+    $('#fromdatetimepicker').datetimepicker({
+        defaultDate: today,
+        format: dateFormat
+    });
+    $('#todatetimepicker').datetimepicker({
+        defaultDate: now,
+        format: dateFormat
+    });
 
     $('#login_form').submit(function() {
         var username = $('#login_username').val();
@@ -194,7 +204,7 @@ function downloadDone(response) {
         if (row.timestamp) {
             var timeObj = moment.unix(row.timestamp);
             //console.log(timeObj);
-            row.formattedTime = timeObj.format("D/M/YY H:mm:ss");
+            row.formattedTime = timeObj.format(dateFormat);
         }
     }
 
