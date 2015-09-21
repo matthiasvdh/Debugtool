@@ -238,6 +238,7 @@ if ( $_GET['mode'] == 'native' ) {
   header("Access-Control-Allow-Origin: *");
   
   //print $header;
+  http_response_code($status['http_code']);
   print $contents;
   
 } else {

@@ -7,6 +7,7 @@ Papa = require("papaparse");
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
 var parseLoginDeferred = null;
+var parsedLogin = null;
 var loggedIn = false;
 var authHeader = null;
 
@@ -52,7 +53,8 @@ function RestHelper(login, password) {
 
     this.restAjaxRequest = function(relUrl, data, success, error, method) {
         parseLoginDeferred.done(function(relUrl, data, success, error, method) {
-                return function (parsedLogin) {
+                return function (parsedLoginArg) {
+                    parsedLogin = parsedLoginArg;
 
                     authHeader = "Basic " + btoa(parsedLogin.rest_user + ":" + password);
                     var url = "https://" + parsedLogin.rest_server + "/" + relUrl;
@@ -83,7 +85,15 @@ function login(username, password) {
     restHelper = new RestHelper(username, password);
     restHelper.restAjaxRequest("company", null,
         companyReceived,
-        function(response) {console.log(response); errorMessage("Login failed");}
+        function(response) {
+            if (response.status != 404) {
+                console.log(response);
+                errorMessage("Login failed");
+            } else {
+                // Reseller-users give a 404, since they're not associated with a single company. Continue in this case.
+                companyReceived(null);
+            }
+        }
     );
 }
 
@@ -95,13 +105,9 @@ function companyReceived(response) {
     //console.log(response);
 
     companyId = (response) ? response.entityId : 0;
-    if (companyId == 0) {
-        $('#company_id_field').val("Please enter a valid company-id.");
-    } else {
+    if (companyId != 0) {
         $('#company_id_field').val(companyId);
     }
-
-
 }
 
 function doDownload() {
@@ -115,6 +121,7 @@ function doDownload() {
     companyId = parseInt($('#company_id_field').val(), 10);
     if (isNaN(companyId)) {
         errorMessage("Enter a valid number in the Company-id field.");
+        return;
     }
 
     // Call-events
@@ -136,7 +143,7 @@ function doDownload() {
  */
 function getEventDownloadUrl(companyId, startTime, endTime, eventType) {
     //￼https://files.pbx.speakup-telecom.com/events/$COMPANY_ID/calls?startTime=$TIME1&endTime=$TIME2
-    return "https://files.pbx.speakup-telecom.com/events/" + companyId + "/"+ eventType + "?startTime=" + startTime + "&endTime=" + endTime;
+    return "https://files." + parsedLogin.base_domain + "/events/" + companyId + "/"+ eventType + "?startTime=" + startTime + "&endTime=" + endTime;
 }
 
 function downloadFromUrl(url, type) {
@@ -159,8 +166,6 @@ function downloadFromUrl(url, type) {
 
 function downloadDone(response) {
 
-    $('#datepickers').hide();
-
     var type = response.target.eventType;
     if (response.target.readyState != 4) {
         return;
@@ -168,10 +173,12 @@ function downloadDone(response) {
     if (response.target.status != 200) {
         errorMessage("Failed to download " + type + " from server. Do you have read-rights on this company?");
         console.log(response);
+        return;
     }
 
-    var responseText = response.target.responseText;
+    $('#datepickers').hide();
 
+    var responseText = response.target.responseText;
 
     // Parse the CSV
     var papaObj = Papa.parse(responseText, {
