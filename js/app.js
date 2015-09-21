@@ -28,6 +28,14 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#download_button').click(function() {
+        _.delay(doDownload, 0);
+    });
+
+    $('#goback_button').click(function() {
+        location.reload();
+    });
+
     var username = localStorage ? localStorage.getItem('username') : null;
     if (username) {
         $('#login_username').val(username);
@@ -81,19 +89,33 @@ function login(username, password) {
 
 function companyReceived(response) {
     loggedIn = true;
+    // Hide login-screen, show date-pickers.
+    $('#login').hide();
+    $('#datepickers').show();
     //console.log(response);
 
     companyId = (response) ? response.entityId : 0;
     if (companyId == 0) {
-        errorMessage("Could not discover company-id.");
-        return;
+        $('#company_id_field').val("Please enter a valid company-id.");
+    } else {
+        $('#company_id_field').val(companyId);
     }
 
+
+}
+
+function doDownload() {
     var fromDate = $('#fromdatetimepicker').data("DateTimePicker").date();
     var fromTimestamp = fromDate.unix();
 
     var toDate = $('#todatetimepicker').data("DateTimePicker").date();
     var toTimestamp = toDate.unix();
+
+    // Get company-id from input field.
+    companyId = parseInt($('#company_id_field').val(), 10);
+    if (isNaN(companyId)) {
+        errorMessage("Enter a valid number in the Company-id field.");
+    }
 
     // Call-events
     var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "calls");
@@ -102,8 +124,6 @@ function companyReceived(response) {
     // User-events
     var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "users");
     downloadFromUrl(userEventDownloadUrl, "users");
-
-    //console.log(userEventDownloadUrl);
 }
 
 /**
@@ -139,12 +159,14 @@ function downloadFromUrl(url, type) {
 
 function downloadDone(response) {
 
+    $('#datepickers').hide();
+
     var type = response.target.eventType;
     if (response.target.readyState != 4) {
         return;
     }
     if (response.target.status != 200) {
-        errorMessage("Failed to download " + type + " from server.");
+        errorMessage("Failed to download " + type + " from server. Do you have read-rights on this company?");
         console.log(response);
     }
 
@@ -188,6 +210,8 @@ function downloadDone(response) {
      document.getElementById('download'+type).href = url;
 
     console.log("Done processing, enabling download link: " + 'download'+type);
+    $('#downloadlinks').show();
+    $('#download'+type).show();
 }
 
 

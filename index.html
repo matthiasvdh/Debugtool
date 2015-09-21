@@ -43,7 +43,7 @@
 
 </div>
 
-<div class="datepickers">
+<div id="datepickers" class="datepickers" style='display: none'>
     <div class="row">
         <div class='col-md-2'>
             <div class="form-group">
@@ -66,14 +66,18 @@
             </div>
         </div>
     </div>
-    <div class="row">
-
+    <div>
+        <label>Company-id:</label><input type="text" id="company_id_field"/>
+    </div>
+    <div>
+        <input type="submit" id="download_button" value="Download" /></li>
     </div>
 </div>
 
-<div class="download_links">
-    <a id="downloadcalls" download="calls.csv">Download call-events</a>
-    <a id="downloadusers" download="users.csv">Download user-events</a>
+<div id="downloadlinks" class="download_links" style='display: none'>
+    <div><a id="downloadcalls" download="calls.csv">Download call-events</a></div>
+    <div><a id="downloadusers" download="users.csv">Download user-events</a></div>
+    <div><input type="submit" id="goback_button" value="Go Back" /></div>
 </div>
 
 </body>
