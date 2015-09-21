@@ -203,15 +203,18 @@ function downloadDone(response) {
 
         if (row.timestamp) {
             var timeObj = moment.unix(row.timestamp);
-            //console.log(timeObj);
             row.formattedTime = timeObj.format(dateFormat);
         }
     }
 
-    // Order by call-id first and timestamp second.
-    //parsed = _.sortBy(parsed, "timestamp");
-    parsed = _.sortBy(parsed, "call_id");
-    //console.log(parsed);
+    // Order by timestamp, but group by call_id.
+    grouped = _.groupBy(parsed, "call_id");
+    //console.log(grouped);
+    var parsed = [];
+    for (var key in grouped) {
+        var obj = grouped[key];
+        parsed = parsed.concat(obj);
+    }
 
     // unparse csv
     var newCsv = Papa.unparse(parsed, {
