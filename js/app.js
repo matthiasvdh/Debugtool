@@ -163,11 +163,11 @@ function downloadFromUrl(url, type) {
     }
 
     // We use a proxy, because the event-log doesn't have CORS headers.
-    var proxyUrl = "https://bedienpost.nl/proxy.php?url=" + url + "&mode=native";
+    //var proxyUrl = "https://bedienpost.nl/proxy.php?url=" + url + "&mode=native";
 
     var xhr = new XMLHttpRequest();
     xhr.eventType = type;
-    xhr.open("GET", proxyUrl, true);
+    xhr.open("GET", url, true);
     xhr.setRequestHeader("Authorization", authHeader);
     xhr.onreadystatechange = downloadDone
     xhr.send()
@@ -229,7 +229,7 @@ function downloadDone(response) {
         type: 'text/csv'
      })
 
-     var url = URL.createObjectURL(blob)
+     var url = URL.createObjectURL(blob);
      document.getElementById('download'+type).href = url;
 
     console.log("Done processing, enabling download link: " + 'download'+type);
