@@ -88,7 +88,7 @@ function RestHelper(login, password) {
                     ({
                         type: method || "GET",
                         headers: {
-                            "Accept": "application/vnd.iperity.compass.v1+json",
+                            "Accept": "application/vnd.iperity.compass.v2+json",
                             "Authorization": authHeader,
                             "X-No-Redirect": true
                         },
@@ -104,7 +104,6 @@ function RestHelper(login, password) {
 }
 
 var restHelper;
-var companyId = 0;
 function login(username, password) {
 
     restHelper = new RestHelper(username, password);
@@ -115,8 +114,8 @@ function login(username, password) {
                 console.log(response);
                 errorMessage("Login failed");
             } else {
-                // Reseller-users give a 404, since they're not associated with a single company. Continue in this case.
-                companyReceived(null);
+                // Reseller-users give a 404, since they're not associated with a single company. Retrieve valid companies for reseller in this case.
+                retrieveResellerCompanies();
             }
         }
     );
@@ -128,20 +127,95 @@ function login(username, password) {
  * - /entity/id/entitiesFiltered?filter=company
  */
 
-function companyReceived(response) {
+function companyReceived(company) {
+    addCompany(company);
+    appViewModel.companyOptions([company.name]);
+    appViewModel.selectedCompanyOption = company.name;
+    userLoggedIn();
+}
 
+function userLoggedIn() {
     loggedIn = true;
     // Hide login-screen, show date-pickers.
     $('#login').hide();
     $('#datepickers').show();
     //console.log(response);
+}
 
-    var companyId = response.entityId ;
-    var companyName = response.name;
+function addCompany(company) {
+    var companyId = company.entityId ;
+    var companyName = company.name;
+    if (!(companyId && companyName)) {
+        console.warn("company " + JSON.stringify(company) + " not added to model because of missing values.");
+    }
+    console.log("Adding company " + companyName + " with id: " + companyId);
     companyNameToId[companyName] = companyId;
 
-    appViewModel.companyOptions([response.name]);
-    appViewModel.selectedCompanyOption = response.name;
+    appViewModel.companyOptions().push(companyName);
+}
+
+function checkExistsInResponse(response, key, cb) {
+    if (!response[key]) {
+        cb(new Error("Response " + JSON.stringify(response) + " does not have key " + key));
+        return false;
+    }
+    return true;
+}
+
+function retrieveResellerCompanies() {
+    async.waterfall([
+
+        // Retrieve the current user
+        function(cb) {
+
+            restHelper.restAjaxRequest("user", null, function(response){
+                cb(null, response);         // success
+            }, function(response){
+                cb(new Error(response));    // error
+            });
+        },
+
+        // Retrieve the reseller for the user.
+        function(response, cb) {
+            checkExistsInResponse(response, "entityId", cb);
+            var user = response;
+
+            restHelper.restAjaxRequest("user/" + user.entityId + "/reseller", null, function(response){
+                cb(null, response);         // success
+            }, function(response){
+                cb(new Error(response));    // error
+            });
+        },
+
+        // Retrieve the Companies under the reseller.
+        function(response, cb) {
+            checkExistsInResponse(response, "entityId", cb);
+            var reseller = response;
+
+            restHelper.restAjaxRequest("entity/" + reseller.entityId + "/entitiesFiltered?filter=company", null, function(response){
+                cb(null, response);         // success
+            }, function(response){
+                cb(new Error(response));    // error
+            });
+        },
+
+    ], function(err, result) {
+        if (err) {
+            console.log("Error occurred:" + err);
+            alert("An error occured while retrieving companies: \n" + err);
+            return;
+        }
+
+        var companies = result;
+        // Allright, we should have the companies!
+        appViewModel.companyOptions([]); // Empty drop-down. New companies will be added through addCompany.
+        for (var companyKey in companies) {
+            var company = companies[companyKey];
+            addCompany(company);
+        }
+        appViewModel.companyOptions(appViewModel.companyOptions());
+        userLoggedIn();
+    });
 }
 
 function doDownload() {
