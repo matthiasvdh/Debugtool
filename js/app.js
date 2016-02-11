@@ -3,6 +3,8 @@ $ = require('jquery');
 moment = require('moment');
 datepicker = require('eonasdan-bootstrap-datetimepicker');
 Papa = require("papaparse");
+ko = require("knockout");
+async = require("async");
 
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
@@ -12,8 +14,18 @@ var dateFormat = "D/MM/YY H:mm:ss";
 var parseLoginDeferred = null;
 var parsedLogin = null;
 var loggedIn = false;
+var companyNameToId = {};
 var authHeader = null;
+var appViewModel = null;
 
+function AppViewModel() {
+    this.companyOptions = ko.observable(["unknown"]);
+    this.selectedCompanyOption = ko.observable("unknown");
+
+    this.selectedCompanyId = ko.computed(function() {
+        return companyNameToId[this.selectedCompanyOption()];
+    }, this);
+}
 
 $(document).ready(function() {
 
@@ -53,6 +65,9 @@ $(document).ready(function() {
         //$('#login_server').val(localStorage.getItem('server'));
     }
 
+    // Activates knockout.js
+    appViewModel = new AppViewModel();
+    ko.applyBindings(appViewModel);
 });
 
 
@@ -107,17 +122,26 @@ function login(username, password) {
     );
 }
 
+/*
+ * - get /user
+ * - /user/id/reseller
+ * - /entity/id/entitiesFiltered?filter=company
+ */
+
 function companyReceived(response) {
+
     loggedIn = true;
     // Hide login-screen, show date-pickers.
     $('#login').hide();
     $('#datepickers').show();
     //console.log(response);
 
-    companyId = (response) ? response.entityId : 0;
-    if (companyId != 0) {
-        $('#company_id_field').val(companyId);
-    }
+    var companyId = response.entityId ;
+    var companyName = response.name;
+    companyNameToId[companyName] = companyId;
+
+    appViewModel.companyOptions([response.name]);
+    appViewModel.selectedCompanyOption = response.name;
 }
 
 function doDownload() {
@@ -128,7 +152,7 @@ function doDownload() {
     var toTimestamp = toDate.unix();
 
     // Get company-id from input field.
-    companyId = parseInt($('#company_id_field').val(), 10);
+    var companyId = appViewModel.selectedCompanyId();
     if (isNaN(companyId)) {
         errorMessage("Enter a valid number in the Company-id field.");
         return;
@@ -164,6 +188,7 @@ function downloadFromUrl(url, type) {
 
     // We use a proxy, because the event-log doesn't have CORS headers.
     //var proxyUrl = "https://bedienpost.nl/proxy.php?url=" + url + "&mode=native";
+    //var url = "https://files.egon.voipgw.net/cdr/3315/2015-12-09/user.csv";
 
     var xhr = new XMLHttpRequest();
     xhr.eventType = type;

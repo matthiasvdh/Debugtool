@@ -60,7 +60,11 @@
             </div>
     </div>
     <div>
-        <label>Company-id:</label><input type="text" id="company_id_field" placeholder="Please enter a valid company-id." size="50"/>
+        <!--<input type="text" id="company_id_field" placeholder="Please enter a valid company-id." size="50"/> -->
+        <label>Company:</label>
+        <select data-bind="options: $root.companyOptions, value: $root.selectedCompanyOption"></select>
+
+
     </div>
     <div>
         <input type="submit" id="download_button" class="button" value="Download" /></li>
