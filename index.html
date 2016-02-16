@@ -3,9 +3,9 @@
 <head>
     <title>Compass Event Logs</title>
     <script src="bundle.js"></script>
-    <script type="text/javascript"  src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript"  src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -72,10 +72,13 @@
 </div>
 
 <div id="downloadlinks" class="download_links" style='display: none'>
-    <div><a id="downloadcalls" download="calls.csv" style='display: none'>Download call-events</a></div>
-    <div><a id="downloadusers" download="users.csv" style='display: none'>Download user-events</a></div>
+    <div>User events <a id="downloaduser" download="user.csv" style='display: none'>Download</a> <a id="viewUser" style='display: none'>View</a></div>
+    <div>Queue events <a id="downloadqueue" download="queue.csv" style='display: none'>Download</a> <a id="viewQueue" style='display: none'>View</a></div>
+    <div>Company events <a id="downloadcompany" download="company.csv" style='display: none'>Download</a> <a id="viewCompany" style='display: none'>View</a></div>
     <div><input type="submit" id="goback_button" class="button" value="Log out" /></div>
 </div>
+
+<div></div>
 
 </body>
 </html>

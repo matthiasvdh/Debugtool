@@ -199,10 +199,11 @@ function retrieveResellerCompanies() {
             });
         },
 
+       // Add all companies to the list.
     ], function(err, result) {
         if (err) {
             console.log("Error occurred:" + err);
-            alert("An error occured while retrieving companies: \n" + err);
+            errorMessage("An error occured while retrieving companies: \n" + err);
             return;
         }
 
@@ -233,12 +234,21 @@ function doDownload() {
     }
 
     // Call-events
-    var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "calls");
-    downloadFromUrl(userEventDownloadUrl, "calls");
+    //var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "calls");
+    //downloadFromUrl(userEventDownloadUrl, "calls");
 
     // User-events
-    var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "users");
-    downloadFromUrl(userEventDownloadUrl, "users");
+    //var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "users");
+    //downloadFromUrl(userEventDownloadUrl, "user");
+
+    var cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
+    downloadFromUrl(cdrDownloadUrl, "user");
+
+    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
+    downloadFromUrl(cdrDownloadUrl, "queue");
+
+    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
+    downloadFromUrl(cdrDownloadUrl, "company");
 }
 
 /**
@@ -254,15 +264,16 @@ function getEventDownloadUrl(companyId, startTime, endTime, eventType) {
     return "https://files." + parsedLogin.base_domain + "/events/" + companyId + "/"+ eventType + "?startTime=" + startTime + "&endTime=" + endTime;
 }
 
+function getCdrDownloadUrl(companyId, date, eventType) {
+    date = "2016-02-02";
+    return "https://files." + parsedLogin.base_domain + "/cdr/" + companyId + "/" + date + "/" + eventType + ".csv";
+}
+
 function downloadFromUrl(url, type) {
     if (!authHeader) {
         errorMessage("Not logged in yet.")
         return;
     }
-
-    // We use a proxy, because the event-log doesn't have CORS headers.
-    //var proxyUrl = "https://bedienpost.nl/proxy.php?url=" + url + "&mode=native";
-    //var url = "https://files.egon.voipgw.net/cdr/3315/2015-12-09/user.csv";
 
     var xhr = new XMLHttpRequest();
     xhr.eventType = type;
@@ -300,14 +311,14 @@ function downloadDone(response) {
     var size = _.size(parsed);
 
     // Re-format the time
-    for (var key in parsed) {
+    /*for (var key in parsed) {
         var row = parsed[key];
 
         if (row.timestamp) {
             var timeObj = moment.unix(row.timestamp);
             row.formattedTime = timeObj.format(dateFormat);
         }
-    }
+    }*/
 
     // Order by timestamp, but group by call_id.
     var grouped = _.groupBy(parsed, "call_id");
