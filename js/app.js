@@ -9,7 +9,7 @@ async = require("async");
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
 
-var dateFormat = "D/MM/YY H:mm:ss";
+var dateFormat = "D/MM/YYYY";
 
 var parseLoginDeferred = null;
 var parsedLogin = null;
@@ -34,10 +34,6 @@ $(document).ready(function() {
     var now = moment();
     $('#fromdatetimepicker').datetimepicker({
         defaultDate: today,
-        format: dateFormat
-    });
-    $('#todatetimepicker').datetimepicker({
-        defaultDate: now,
         format: dateFormat
     });
 
@@ -221,10 +217,7 @@ function retrieveResellerCompanies() {
 
 function doDownload() {
     var fromDate = $('#fromdatetimepicker').data("DateTimePicker").date();
-    var fromTimestamp = fromDate.unix();
-
-    var toDate = $('#todatetimepicker').data("DateTimePicker").date();
-    var toTimestamp = toDate.unix();
+    var fromTimestamp = fromDate.format("YYYY-MM-DD");
 
     // Get company-id from input field.
     var companyId = appViewModel.selectedCompanyId();
@@ -244,10 +237,10 @@ function doDownload() {
     var cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
     downloadFromUrl(cdrDownloadUrl, "user");
 
-    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
+    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "queue");
     downloadFromUrl(cdrDownloadUrl, "queue");
 
-    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
+    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "company");
     downloadFromUrl(cdrDownloadUrl, "company");
 }
 
@@ -265,7 +258,6 @@ function getEventDownloadUrl(companyId, startTime, endTime, eventType) {
 }
 
 function getCdrDownloadUrl(companyId, date, eventType) {
-    date = "2016-02-02";
     return "https://files." + parsedLogin.base_domain + "/cdr/" + companyId + "/" + date + "/" + eventType + ".csv";
 }
 
