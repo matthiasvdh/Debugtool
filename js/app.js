@@ -57,13 +57,13 @@ $(document).ready(function() {
     });
 
     $('#download_button_user').click(function() {
-        _.delay(doDownload, 0, "user");
+        _.delay(doDownloadCdr, 0, "user");
     });
     $('#download_button_queue').click(function() {
-        _.delay(doDownload, 0, "queue");
+        _.delay(doDownloadCdr, 0, "queue");
     });
     $('#download_button_company').click(function() {
-        _.delay(doDownload, 0, "company");
+        _.delay(doDownloadCdr, 0, "company");
     });
 
     $('#goback_button').click(function() {
@@ -230,7 +230,7 @@ function retrieveResellerCompanies() {
     });
 }
 
-function doDownload(type) {
+function doDownloadCdr(type) {
     var fromDate = $('#fromdatetimepicker').data("DateTimePicker").date();
     var fromTimestamp = fromDate.format("YYYY-MM-DD");
 
@@ -297,7 +297,9 @@ function downloadFromUrl(url, type) {
 }
 
 function CdrRetrieved(response) {
+    var startTime = Date.now();
 
+    // Support chunked encoding
     var type = response.target.eventType;
     if (response.target.readyState != 4) {
         return;
@@ -308,12 +310,9 @@ function CdrRetrieved(response) {
         return;
     }
 
+    var responseText = response.target.responseText;
     $('#datepickers').hide();
 
-    var responseText = response.target.responseText;
-    console.log(responseText);
-
-    var startTime = Date.now();
 
     // Parse the CSV
     var papaObj = Papa.parse(responseText, {
@@ -321,11 +320,8 @@ function CdrRetrieved(response) {
         dynamicTyping: true
     });
     var parsed = papaObj.data;
-
     // Remove the last, almost empty, element.
     parsed.splice(_.size(parsed) - 1, 1);
-
-    var size = _.size(parsed);
 
     // Re-format the time
     /*for (var key in parsed) {
@@ -339,32 +335,24 @@ function CdrRetrieved(response) {
 
     // Order by timestamp, but group by call_id.
     var grouped = _.groupBy(parsed, "call_id");
-    //console.log(grouped);
-
     var parsed = [];
     for (var key in grouped) {
         Array.prototype.push.apply(parsed, grouped[key]);
     }
 
-    //console.log(parsed);
-
     // unparse csv
     var newCsv = Papa.unparse(parsed, {
         quotes: {"call_id" : true}
     });
-    //console.log(newCsv);
 
-     blob = new Blob([newCsv], {
-        type: 'text/csv'
-     })
-
+    // Setup download-link
+    blob = new Blob([newCsv], {type: 'text/csv' })
      var url = URL.createObjectURL(blob);
      document.getElementById('download'+type).href = url;
-
+    // unhide download-link
     console.log("Done processing, enabling download link: " + 'download'+type);
     $('#downloadlinks').show();
     $('#download'+type).show();
-    //$('#view'+type).show();
 
     var endTime = Date.now();
     console.log("Processing of " + size + " elements took: " + (endTime - startTime) + "ms");
@@ -374,7 +362,6 @@ function CdrRetrieved(response) {
     appViewModel.activeColumnNames(columnNames[type]);
     console.log(appViewModel.activeListView());
     $('#cdr_table').show();
-
 }
 
 
