@@ -59,18 +59,55 @@
 
     </div>
     <div>
-        <input type="submit" id="download_button" class="button" value="Download" /></li>
+        <input type="submit" id="download_button_user" class="button" value="View User Logs" /></li>
+        <input type="submit" id="download_button_queue" class="button" value="View Queue Logs" /></li>
+        <input type="submit" id="download_button_company" class="button" value="View Company Logs" /></li>
     </div>
 </div>
 
-<div id="downloadlinks" class="download_links" style='display: none'>
-    <div>User events <a id="downloaduser" download="user.csv" style='display: none'>Download</a> <a id="viewUser" style='display: none'>View</a></div>
-    <div>Queue events <a id="downloadqueue" download="queue.csv" style='display: none'>Download</a> <a id="viewQueue" style='display: none'>View</a></div>
-    <div>Company events <a id="downloadcompany" download="company.csv" style='display: none'>Download</a> <a id="viewCompany" style='display: none'>View</a></div>
-    <div><input type="submit" id="goback_button" class="button" value="Log out" /></div>
+<div id="user_cdr" class="user_cdr" style='display: none'>
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th>call-id</th>
+            <th>parent_callid</th>
+            <th>start_time</th>
+            <th>answer_time</th>
+            <th>end_time</th>
+            <th>timezone</th>
+            <th>identity_id</th>
+            <th>identity_name</th>
+            <th>direction</th>
+            <th>number</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody data-bind="foreach: activeListView">
+        <tr>
+            <td data-bind="text: $index"></td>
+            <td data-bind="text: callid"></td>
+            <td data-bind="text: parent_callid"></td>
+            <td data-bind="text: start_time"></td>
+            <td data-bind="text: answer_time"></td>
+            <td data-bind="text: end_time"></td>
+            <td data-bind="text: timezone"></td>
+            <td data-bind="text: identity_id"></td>
+            <td data-bind="text: identity_name"></td>
+            <td data-bind="text: direction"></td>
+            <td data-bind="text: number"></td>
+
+        </tr>
+        </tbody>
+    </table>
 </div>
 
-<div></div>
+<div id="downloadlinks" class="download_links" style='display: none'>
+    <div id="downloaduser" style='display: none'><a download="user.csv">Download</a> User events</div>
+    <div id="downloadqueue" style='display: none'><a download="queue.csv">Download</a> Queue events</div>
+    <div id="downloadcompany" style='display: none'><a download="company.csv">Download</a> Company events</div>
+    <div><input type="submit" id="goback_button" class="button" value="Log out" /></div>
+</div>
 
 </body>
 </html>

@@ -22,9 +22,30 @@ function AppViewModel() {
     this.companyOptions = ko.observable(["unknown"]);
     this.selectedCompanyOption = ko.observable("unknown");
 
+    this.activeListView = ko.observable([]);
+
     this.selectedCompanyId = ko.computed(function() {
         return companyNameToId[this.selectedCompanyOption()];
     }, this);
+
+    this.log=console.log();
+}
+
+function ListView(items) {
+    console.log("Creating new listview with:");
+    console.log(items);
+
+    this.rows = [];
+
+    for (itemKey in items) {
+        var item = items[itemKey];
+        console.log("Creating new row with:");
+        console.log(item);
+        this.rows.push({cols: item});
+    }
+
+    console.log("Result: ");
+    console.log(this.rows);
 }
 
 $(document).ready(function() {
@@ -47,8 +68,14 @@ $(document).ready(function() {
         return false;
     });
 
-    $('#download_button').click(function() {
-        _.delay(doDownload, 0);
+    $('#download_button_user').click(function() {
+        _.delay(doDownload, 0, "user");
+    });
+    $('#download_button_queue').click(function() {
+        _.delay(doDownload, 0, "queue");
+    });
+    $('#download_button_company').click(function() {
+        _.delay(doDownload, 0, "company");
     });
 
     $('#goback_button').click(function() {
@@ -215,7 +242,7 @@ function retrieveResellerCompanies() {
     });
 }
 
-function doDownload() {
+function doDownload(type) {
     var fromDate = $('#fromdatetimepicker').data("DateTimePicker").date();
     var fromTimestamp = fromDate.format("YYYY-MM-DD");
 
@@ -226,6 +253,19 @@ function doDownload() {
         return;
     }
 
+    switch(type) {
+        case "user":
+        case "queue":
+        case "company":
+            var cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, type);
+            downloadFromUrl(cdrDownloadUrl, type);
+            break;
+
+        default:
+            errorMessage("Asked to download an unknown type: " + type);
+            return;
+    }
+
     // Call-events
     //var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "calls");
     //downloadFromUrl(userEventDownloadUrl, "calls");
@@ -234,14 +274,6 @@ function doDownload() {
     //var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "users");
     //downloadFromUrl(userEventDownloadUrl, "user");
 
-    var cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "user");
-    downloadFromUrl(cdrDownloadUrl, "user");
-
-    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "queue");
-    downloadFromUrl(cdrDownloadUrl, "queue");
-
-    cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, "company");
-    downloadFromUrl(cdrDownloadUrl, "company");
 }
 
 /**
@@ -271,12 +303,12 @@ function downloadFromUrl(url, type) {
     xhr.eventType = type;
     xhr.open("GET", url, true);
     xhr.setRequestHeader("Authorization", authHeader);
-    xhr.onreadystatechange = downloadDone
+    xhr.onreadystatechange = CdrRetrieved
     xhr.send()
 
 }
 
-function downloadDone(response) {
+function CdrRetrieved(response) {
 
     var type = response.target.eventType;
     if (response.target.readyState != 4) {
@@ -291,6 +323,7 @@ function downloadDone(response) {
     $('#datepickers').hide();
 
     var responseText = response.target.responseText;
+    console.log(responseText);
 
     var startTime = Date.now();
 
@@ -300,6 +333,10 @@ function downloadDone(response) {
         dynamicTyping: true
     });
     var parsed = papaObj.data;
+
+    // Remove the last, almost empty, element.
+    parsed.splice(_.size(parsed) - 1, 1);
+
     var size = _.size(parsed);
 
     // Re-format the time
@@ -321,6 +358,8 @@ function downloadDone(response) {
         Array.prototype.push.apply(parsed, grouped[key]);
     }
 
+    //console.log(parsed);
+
     // unparse csv
     var newCsv = Papa.unparse(parsed, {
         quotes: {"call_id" : true}
@@ -337,13 +376,21 @@ function downloadDone(response) {
     console.log("Done processing, enabling download link: " + 'download'+type);
     $('#downloadlinks').show();
     $('#download'+type).show();
+    //$('#view'+type).show();
 
     var endTime = Date.now();
     console.log("Processing of " + size + " elements took: " + (endTime - startTime) + "ms");
+
+    // List-view
+    //appViewModel.activeListView(new ListView(parsed));
+    appViewModel.activeListView(parsed);
+    console.log(appViewModel.activeListView()   );
+    $('#' + type + '_cdr').show();
+
 }
 
 
 function errorMessage(msg) {
-    console.log(msg);
+    console.log("ERROR:" + msg);
     alert(msg);
 }
