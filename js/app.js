@@ -5,11 +5,13 @@ datepicker = require('eonasdan-bootstrap-datetimepicker');
 Papa = require("papaparse");
 ko = require("knockout");
 async = require("async");
-
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
 
 var dateFormat = "D/MM/YYYY";
+var columnNames = {
+    user: ['callid', 'parent_callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'identity_id', 'identity_name', 'direction', 'number']
+}
 
 var parseLoginDeferred = null;
 var parsedLogin = null;
@@ -23,29 +25,13 @@ function AppViewModel() {
     this.selectedCompanyOption = ko.observable("unknown");
 
     this.activeListView = ko.observable([]);
+    this.activeColumnNames = ko.observable([]);
 
     this.selectedCompanyId = ko.computed(function() {
         return companyNameToId[this.selectedCompanyOption()];
     }, this);
 
     this.log=console.log();
-}
-
-function ListView(items) {
-    console.log("Creating new listview with:");
-    console.log(items);
-
-    this.rows = [];
-
-    for (itemKey in items) {
-        var item = items[itemKey];
-        console.log("Creating new row with:");
-        console.log(item);
-        this.rows.push({cols: item});
-    }
-
-    console.log("Result: ");
-    console.log(this.rows);
 }
 
 $(document).ready(function() {
@@ -382,10 +368,10 @@ function CdrRetrieved(response) {
     console.log("Processing of " + size + " elements took: " + (endTime - startTime) + "ms");
 
     // List-view
-    //appViewModel.activeListView(new ListView(parsed));
     appViewModel.activeListView(parsed);
-    console.log(appViewModel.activeListView()   );
-    $('#' + type + '_cdr').show();
+    appViewModel.activeColumnNames(columnNames[type]);
+    console.log(appViewModel.activeListView());
+    $('#cdr_table').show();
 
 }
 

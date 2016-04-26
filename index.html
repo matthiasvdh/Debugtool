@@ -65,38 +65,18 @@
     </div>
 </div>
 
-<div id="user_cdr" class="user_cdr" style='display: none'>
+<div id="cdr_table" class="cdr_table" style='display: none'>
     <table>
         <thead>
-        <tr>
-            <th></th>
-            <th>call-id</th>
-            <th>parent_callid</th>
-            <th>start_time</th>
-            <th>answer_time</th>
-            <th>end_time</th>
-            <th>timezone</th>
-            <th>identity_id</th>
-            <th>identity_name</th>
-            <th>direction</th>
-            <th>number</th>
-            <th></th>
+        <tr data-bind="foreach: activeColumnNames">
+            <th> <span data-bind="text: $data"></span>
+
+            </th>
         </tr>
         </thead>
         <tbody data-bind="foreach: activeListView">
-        <tr>
-            <td data-bind="text: $index"></td>
-            <td data-bind="text: callid"></td>
-            <td data-bind="text: parent_callid"></td>
-            <td data-bind="text: start_time"></td>
-            <td data-bind="text: answer_time"></td>
-            <td data-bind="text: end_time"></td>
-            <td data-bind="text: timezone"></td>
-            <td data-bind="text: identity_id"></td>
-            <td data-bind="text: identity_name"></td>
-            <td data-bind="text: direction"></td>
-            <td data-bind="text: number"></td>
-
+        <tr data-bind="foreach: $parent.activeColumnNames">
+            <td data-bind="text: $parent[$data]"></td>
         </tr>
         </tbody>
     </table>
