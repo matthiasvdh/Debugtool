@@ -75,7 +75,7 @@
         </tr>
         </thead>
         <tbody data-bind="foreach: activeListView">
-        <tr data-bind="foreach: $parent.activeColumnNames">
+        <tr data-bind="click: $parent.callClicked, foreach: $parent.activeColumnNames">
             <td data-bind="text: $parent[$data]"></td>
         </tr>
         </tbody>
@@ -86,6 +86,7 @@
     <div id="downloaduser" style='display: none'><a download="user.csv">Download</a> User events</div>
     <div id="downloadqueue" style='display: none'><a download="queue.csv">Download</a> Queue events</div>
     <div id="downloadcompany" style='display: none'><a download="company.csv">Download</a> Company events</div>
+    <div id="downloadcalls" style='display: none'><a download="company.csv">Download</a></div>
     <div><input type="submit" id="goback_button" class="button" value="Log out" /></div>
 </div>
 

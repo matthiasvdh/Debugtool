@@ -12,7 +12,8 @@ var dateFormat = "D/MM/YYYY";
 var columnNames = {
     user: ['callid', 'parent_callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'identity_id', 'identity_name', 'direction', 'number'],
     queue: ['callid', 'start_time', 'timezone', 'wait_duration', 'agent_duration', 'queue_id', 'queue_name', 'agent_id', 'agent_name', 'from_number'],
-    company: ['callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'from_type', 'from_id', 'from_number', 'from_number', 'from_name', 'to_number', 'end_reason']
+    company: ['callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'from_type', 'from_id', 'from_number', 'from_number', 'from_name', 'to_number', 'end_reason'],
+    calls: ['id', 'company_id', 'call_id', 'parent_id', 'step', 'timestamp', 'caller_type', 'caller_id', 'caller_number', 'caller_desc', 'callee_type', 'callee_number', 'callee_desc', 'state', 'end_reason']
 }
 
 var parseLoginDeferred = null;
@@ -28,12 +29,27 @@ function AppViewModel() {
 
     this.activeListView = ko.observable([]);
     this.activeColumnNames = ko.observable([]);
+    this.selectedCallId = ko.observable(null);
 
     this.selectedCompanyId = ko.computed(function() {
         return companyNameToId[this.selectedCompanyOption()];
     }, this);
 
-    this.log=console.log();
+    var self = this;
+
+    this.callClicked = function(item) {
+        console.log("Call clicked: " + item.callid);
+        self.selectedCallId(item.callid);
+
+        var fromDate = $('#fromdatetimepicker').data("DateTimePicker").date();
+        var fromTimestamp = fromDate.unix();
+        var toTimestamp = fromTimestamp + 86400;
+
+        var userEventDownloadUrl = getEventDownloadUrl(self.selectedCompanyId(), fromTimestamp, toTimestamp, "calls");
+        //console.log(userEventDownloadUrl);
+        downloadFromUrl(userEventDownloadUrl, "calls");
+
+    }
 }
 
 $(document).ready(function() {
@@ -291,12 +307,12 @@ function downloadFromUrl(url, type) {
     xhr.eventType = type;
     xhr.open("GET", url, true);
     xhr.setRequestHeader("Authorization", authHeader);
-    xhr.onreadystatechange = CdrRetrieved
+    xhr.onreadystatechange = downloadRetrieved
     xhr.send()
 
 }
 
-function CdrRetrieved(response) {
+function downloadRetrieved(response) {
     var startTime = Date.now();
 
     // Support chunked encoding
@@ -312,6 +328,7 @@ function CdrRetrieved(response) {
 
     var responseText = response.target.responseText;
     $('#datepickers').hide();
+    console.log(responseText);
 
 
     // Parse the CSV
@@ -340,7 +357,13 @@ function CdrRetrieved(response) {
         Array.prototype.push.apply(parsed, grouped[key]);
     }
 
+    if (appViewModel.selectedCallId()) {
+        var callId = appViewModel.selectedCallId();
+        parsed = _.where(parsed, {call_id: callId});
+    }
+
     // unparse csv
+    var size = _.size(parsed);
     var newCsv = Papa.unparse(parsed, {
         quotes: {"call_id" : true}
     });
@@ -363,7 +386,6 @@ function CdrRetrieved(response) {
     console.log(appViewModel.activeListView());
     $('#cdr_table').show();
 }
-
 
 function errorMessage(msg) {
     console.log("ERROR:" + msg);
