@@ -24,6 +24,7 @@ var authHeader = null;
 var appViewModel = null;
 var prevData = null;
 var prevType = null;
+var eventData = null;
 
 function AppViewModel() {
     this.companyOptions = ko.observable(["unknown"]);
@@ -61,7 +62,12 @@ function AppViewModel() {
 
         var userEventDownloadUrl = getEventDownloadUrl(self.selectedCompanyId(), fromTimestamp, toTimestamp, "calls");
         //console.log(userEventDownloadUrl);
-        downloadFromUrl(userEventDownloadUrl, "calls");
+
+        if (eventData) {
+            processData(eventData, "calls");
+        } else {
+            downloadFromUrl(userEventDownloadUrl, "calls");
+        }
 
     }
 }
@@ -382,6 +388,10 @@ function processData(responseText, type) {
 
     var endTime = Date.now();
     console.log("Parsing of " + size + " elements took: " + (endTime - startTime) + "ms");
+
+    if (type == "calls") {
+        eventData = responseText;
+    }
 
     displayData(parsed, type);
 }
