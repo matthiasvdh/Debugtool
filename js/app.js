@@ -22,6 +22,8 @@ var loggedIn = false;
 var companyNameToId = {};
 var authHeader = null;
 var appViewModel = null;
+var prevData = null;
+var prevType = null;
 
 function AppViewModel() {
     this.companyOptions = ko.observable(["unknown"]);
@@ -38,7 +40,10 @@ function AppViewModel() {
     var self = this;
 
     this.backClicked = function() {
-
+        console.log("back clicked");
+        if (prevData) {
+            displayData(prevData, prevType);
+        }
     }
 
     this.callClicked = function(item) {
@@ -86,7 +91,7 @@ $(document).ready(function() {
         _.delay(doDownloadCdr, 0, "company");
     });
 
-    $('#goback_button').click(function() {
+    $('#logout_button').click(function() {
         location.reload();
     });
 
@@ -317,8 +322,6 @@ function downloadFromUrl(url, type) {
 }
 
 function downloadRetrieved(response) {
-    var startTime = Date.now();
-
     // Support chunked encoding
     var type = response.target.eventType;
     if (response.target.readyState != 4) {
@@ -331,9 +334,11 @@ function downloadRetrieved(response) {
     }
 
     var responseText = response.target.responseText;
-    $('#datepickers').hide();
-    console.log(responseText);
+    processData(responseText, type);
+}
 
+function processData(responseText, type) {
+    var startTime = Date.now();
 
     // Parse the CSV
     var papaObj = Papa.parse(responseText, {
@@ -342,7 +347,8 @@ function downloadRetrieved(response) {
     });
     var parsed = papaObj.data;
     // Remove the last, almost empty, element.
-    parsed.splice(_.size(parsed) - 1, 1);
+    var size = _.size(parsed);
+    parsed.splice(size - 1, 1);
 
     // Re-format the time
     for (var key in parsed) {
@@ -366,23 +372,32 @@ function downloadRetrieved(response) {
         parsed = _.where(parsed, {call_id: callId});
     }
 
+    var endTime = Date.now();
+    console.log("Parsing of " + size + " elements took: " + (endTime - startTime) + "ms");
+
+    displayData(parsed, type);
+}
+
+function displayData(parsed, type) {
+    $('#datepickers').hide();
+
     // unparse csv
+    var startTime = Date.now();
     var size = _.size(parsed);
     var newCsv = Papa.unparse(parsed, {
         quotes: {"call_id" : true}
     });
+    var endTime = Date.now();
+    console.log("Creating csv for " + size + " elements took: " + (endTime - startTime) + "ms");
 
     // Setup download-link
     blob = new Blob([newCsv], {type: 'text/csv' })
-     var url = URL.createObjectURL(blob);
-     document.getElementById('download'+type).href = url;
+    var url = URL.createObjectURL(blob);
+    document.getElementById('download'+type).href = url;
     // unhide download-link
     console.log("Done processing, enabling download link: " + 'download'+type);
     $('#downloadlinks').show();
     $('#download'+type).show();
-
-    var endTime = Date.now();
-    console.log("Processing of " + size + " elements took: " + (endTime - startTime) + "ms");
 
     // List-view
     appViewModel.activeListView(parsed);
@@ -391,7 +406,11 @@ function downloadRetrieved(response) {
     $('#cdr_table').show();
 
     if (type == "calls") {
-        
+        $('#backbutton').show();
+    } else {
+        prevData = parsed;
+        prevType = type;
+        $('#backbutton').hide();
     }
 }
 
