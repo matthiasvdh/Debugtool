@@ -47,6 +47,11 @@ function AppViewModel() {
     }
 
     this.callClicked = function(item) {
+        if (prevType == "calls") {
+            console.log("Already zoomed in, not processing another click on calls.");
+            return;
+        }
+
         console.log("Call clicked: " + item.callid);
         self.selectedCallId(item.callid);
 
@@ -312,6 +317,8 @@ function downloadFromUrl(url, type) {
         return;
     }
 
+    console.log("Downloading from url " + url);
+
     var xhr = new XMLHttpRequest();
     xhr.eventType = type;
     xhr.open("GET", url, true);
@@ -402,7 +409,6 @@ function displayData(parsed, type) {
     // List-view
     appViewModel.activeListView(parsed);
     appViewModel.activeColumnNames(columnNames[type]);
-    console.log(appViewModel.activeListView());
     $('#cdr_table').show();
 
     if (type == "calls") {
