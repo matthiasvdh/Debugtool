@@ -1,6 +1,6 @@
 {
   "name": "compass-event-logs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "An example of a browserify project set-up with the 'Simple' LisaApi code example. This can serve as a template for your own projects.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
