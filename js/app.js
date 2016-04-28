@@ -408,8 +408,10 @@ function displayData(parsed, type) {
     $('#download'+type).show();
 
     // List-view
-    appViewModel.activeListView(parsed);
+    $('#cdr_table').hide();
+    appViewModel.activeListView([]);
     appViewModel.activeColumnNames(columnNames[type]);
+    appViewModel.activeListView(parsed);
     $('#cdr_table').show();
 
     if (type == "calls") {
