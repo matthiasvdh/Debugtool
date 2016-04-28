@@ -386,12 +386,14 @@ function processData(responseText, type) {
         parsed = _.where(parsed, {call_id: callId});
     }
 
-    var endTime = Date.now();
-    console.log("Parsing of " + size + " elements took: " + (endTime - startTime) + "ms");
 
     if (type == "calls") {
         eventData = responseText;
+        parsed = _.sortBy(parsed, "step");
     }
+
+    var endTime = Date.now();
+    console.log("Parsing of " + size + " elements took: " + (endTime - startTime) + "ms");
 
     displayData(parsed, type);
 }
