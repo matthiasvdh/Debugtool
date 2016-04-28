@@ -68,7 +68,6 @@ function AppViewModel() {
         } else {
             downloadFromUrl(userEventDownloadUrl, "calls");
         }
-
     }
 }
 
@@ -177,7 +176,8 @@ function login(username, password) {
 function companyReceived(company) {
     addCompany(company);
     appViewModel.companyOptions([company.name]);
-    appViewModel.selectedCompanyOption = company.name;
+    appViewModel.selectedCompanyOption(company.name);
+    retrieveResellerCompanies();
     userLoggedIn();
 }
 
@@ -210,6 +210,8 @@ function checkExistsInResponse(response, key, cb) {
 }
 
 function retrieveResellerCompanies() {
+    console.log("Retrieving reseller companies.");
+
     async.waterfall([
 
         // Retrieve the current user
@@ -250,7 +252,7 @@ function retrieveResellerCompanies() {
     ], function(err, result) {
         if (err) {
             console.log("Error occurred:" + err);
-            errorMessage("An error occured while retrieving companies: \n" + err);
+            //errorMessage("An error occured while retrieving companies: \n" + err);
             return;
         }
 
@@ -272,6 +274,7 @@ function doDownloadCdr(type) {
 
     // Get company-id from input field.
     var companyId = appViewModel.selectedCompanyId();
+    console.log("Downloading CDRs for compay " + companyId + " and date " + fromTimestamp);
     if (isNaN(companyId)) {
         errorMessage("Enter a valid number in the Company-id field.");
         return;
