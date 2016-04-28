@@ -37,6 +37,10 @@ function AppViewModel() {
 
     var self = this;
 
+    this.backClicked = function() {
+
+    }
+
     this.callClicked = function(item) {
         console.log("Call clicked: " + item.callid);
         self.selectedCallId(item.callid);
@@ -341,14 +345,14 @@ function downloadRetrieved(response) {
     parsed.splice(_.size(parsed) - 1, 1);
 
     // Re-format the time
-    /*for (var key in parsed) {
+    for (var key in parsed) {
         var row = parsed[key];
 
         if (row.timestamp) {
             var timeObj = moment.unix(row.timestamp);
-            row.formattedTime = timeObj.format(dateFormat);
+            row.timestamp = timeObj.format("D/MM/YYYY H:mm:ss.SSS");
         }
-    }*/
+    }
 
     // Order by timestamp, but group by call_id.
     var grouped = _.groupBy(parsed, "call_id");
@@ -385,6 +389,10 @@ function downloadRetrieved(response) {
     appViewModel.activeColumnNames(columnNames[type]);
     console.log(appViewModel.activeListView());
     $('#cdr_table').show();
+
+    if (type == "calls") {
+        
+    }
 }
 
 function errorMessage(msg) {
