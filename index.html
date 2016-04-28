@@ -65,6 +65,15 @@
     </div>
 </div>
 
+<div id="downloadlinks" class="download_links" style='display: none'>
+    <div><a id="downloaduser" style='display: none' download="user.csv">Download User events</a></div>
+    <div><a id="downloadqueue" style='display: none' download="queue.csv">Download Queue events</a></div>
+    <div><a id="downloadcompany" style='display: none'download="company.csv">Download Company events</a></div>
+    <div><a id="downloadcalls" style='display: none' download="calls.csv">Download Call events</a></div>
+    <div><input type="submit" id="backbutton" class="button" value="Back" , data-bind="click: backClicked"/></div>
+    <div><input type="submit" id="logout_button" class="button" value="Log out" /></div>
+</div>
+
 <div id="cdr_table" class="cdr_table" style='display: none'>
     <table>
         <thead>
@@ -80,15 +89,6 @@
         </tr>
         </tbody>
     </table>
-</div>
-
-<div id="downloadlinks" class="download_links" style='display: none'>
-    <div><a id="downloaduser" style='display: none' download="user.csv">Download User events</a></div>
-    <div><a id="downloadqueue" style='display: none' download="queue.csv">Download Queue events</a></div>
-    <div><a id="downloadcompany" style='display: none'download="company.csv">Download Company events</a></div>
-    <div><a id="downloadcalls" style='display: none' download="calls.csv">Download Call events</a></div>
-    <div><input type="submit" id="backbutton" class="button" value="Back" , data-bind="click: backClicked"/></div>
-    <div><input type="submit" id="logout_button" class="button" value="Log out" /></div>
 </div>
 
 </body>
