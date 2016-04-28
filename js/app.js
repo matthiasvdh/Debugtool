@@ -47,7 +47,7 @@ function AppViewModel() {
     }
 
     this.callClicked = function(item) {
-        if (prevType == "calls") {
+        if (!item.callid) {
             console.log("Already zoomed in, not processing another click on calls.");
             return;
         }
@@ -340,6 +340,7 @@ function downloadRetrieved(response) {
         return;
     }
 
+    console.log("Download done. Processing ...");
     var responseText = response.target.responseText;
     processData(responseText, type);
 }
