@@ -190,7 +190,9 @@ function RestHelper(login, password) {
 var restHelper;
 function login(username, password) {
 
-    loginInfo = {username: username, password: password, loggedIn: true};
+    loginInfo.username = username;
+    loginInfo.password = password;
+    loginInfo.loggedIn = true;
     saveLoginInfo();
 
     restHelper = new RestHelper(username, password);
@@ -303,6 +305,7 @@ function retrieveResellerCompanies() {
         appViewModel.companyOptions([]); // Empty drop-down. New companies will be added through addCompany.
         for (var companyKey in companies) {
             var company = companies[companyKey];
+            console.log(company);
             addCompany(company);
         }
         appViewModel.companyOptions(appViewModel.companyOptions());
