@@ -104,6 +104,8 @@ $(document).ready(function() {
         $('#login_password').val(loginInfo.password);
 
         login(loginInfo.username, loginInfo.password);
+    } else {
+        showLoginScreen();
     }
 
     $('#login_form').submit(function() {
@@ -143,6 +145,9 @@ $(document).ready(function() {
     ko.applyBindings(appViewModel);
 });
 
+function showLoginScreen() {
+    $('#login').show();
+}
 
 function RestHelper(login, password) {
 
@@ -190,6 +195,7 @@ function login(username, password) {
             if (response.status != 404) {
                 console.log(response);
                 errorMessage("Login failed");
+                showLoginScreen();
             } else {
                 // Reseller-users give a 404, since they're not associated with a single company. Retrieve valid companies for reseller in this case.
                 retrieveResellerCompanies();
