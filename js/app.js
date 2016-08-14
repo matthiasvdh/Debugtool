@@ -27,7 +27,7 @@ var prevType = null;
 var eventData = null;
 
 var loginInfoKey = "elt_loginInfo";
-var loginInfo = {username: "", password: "", loggedIn: false};
+var loginInfo = {username: "", password: "", loggedIn: false, selectedCompanyOption: "unknown"};
 
 function AppViewModel() {
     this.companyOptions = ko.observable(["unknown"]);
@@ -130,7 +130,9 @@ $(document).ready(function() {
 
     $('#logout_button').click(function() {
         loginInfo.loggedIn = false;
-        localStorage.setItem(loginInfoKey, JSON.stringify(loginInfo));
+        loginInfo.password = "";
+        loginInfo.selectedCompanyOption = "unknown";
+        saveLoginInfo();
         location.reload();
     });
 
@@ -147,6 +149,10 @@ $(document).ready(function() {
 
 function showLoginScreen() {
     $('#login').show();
+}
+
+function saveLoginInfo() {
+    localStorage.setItem(loginInfoKey, JSON.stringify(loginInfo));
 }
 
 function RestHelper(login, password) {
@@ -184,9 +190,8 @@ function RestHelper(login, password) {
 var restHelper;
 function login(username, password) {
 
-
     loginInfo = {username: username, password: password, loggedIn: true};
-    localStorage.setItem(loginInfoKey, JSON.stringify(loginInfo));
+    saveLoginInfo();
 
     restHelper = new RestHelper(username, password);
     restHelper.restAjaxRequest("company", null,
@@ -301,6 +306,10 @@ function retrieveResellerCompanies() {
             addCompany(company);
         }
         appViewModel.companyOptions(appViewModel.companyOptions());
+
+        // Select a specific company if it was previously selected.
+        if (loginInfo.selectedCompanyOption != "unknown") appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
+
         userLoggedIn();
     });
 }
@@ -309,9 +318,12 @@ function doDownloadCdr(type) {
     var fromDate = $('#fromdatetimepicker').data("DateTimePicker").date();
     var fromTimestamp = fromDate.format("YYYY-MM-DD");
 
-    // Get company-id from input field.
+    // Get company-id from input field, save selected company.
     var companyId = appViewModel.selectedCompanyId();
-    console.log("Downloading CDRs for compay " + companyId + " and date " + fromTimestamp);
+    loginInfo.selectedCompanyOption = appViewModel.selectedCompanyOption();
+    saveLoginInfo();
+
+    console.log("Downloading CDRs for company " + companyId + " and date " + fromTimestamp);
     if (isNaN(companyId)) {
         errorMessage("Enter a valid number in the Company-id field.");
         return;
