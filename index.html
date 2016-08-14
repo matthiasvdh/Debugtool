@@ -59,19 +59,21 @@
 
     </div>
     <div>
-        <input type="submit" id="download_button_user" class="button" value="View User Logs" /></li>
-        <input type="submit" id="download_button_queue" class="button" value="View Queue Logs" /></li>
-        <input type="submit" id="download_button_company" class="button" value="View Company Logs" /></li>
+        <input type="submit" id="download_button_user" class="button" value="Gesprekken per Gebruiker" /></li>
+        <input type="submit" id="download_button_queue" class="button" value="Gesprekken per Wachtrij" /></li>
+        <input type="submit" id="download_button_company" class="button" value="Gesprekken van het Bedrijf" /></li>
+        <div><input type="submit" id="logout_button" class="button" value="Log out" /></div>
     </div>
 </div>
 
 <div id="downloadlinks" class="download_links" style='display: none'>
-    <div><a id="downloaduser" style='display: none' download="user.csv">Download User events</a></div>
-    <div><a id="downloadqueue" style='display: none' download="queue.csv">Download Queue events</a></div>
-    <div><a id="downloadcompany" style='display: none'download="company.csv">Download Company events</a></div>
-    <div><a id="downloadcalls" style='display: none' download="calls.csv">Download Call events</a></div>
+    <div><a id="downloaduser" style='display: none' download="user.csv">Download Gesprekken per Gebruiker</a></div>
+    <div><a id="downloadqueue" style='display: none' download="queue.csv">Download Gesprekken per Wachtrij</a></div>
+    <div><a id="downloadcompany" style='display: none'download="company.csv">Download Gesprekken van het Bedrijf</a></div>
+    <div><a id="downloadcalls" style='display: none' download="calls.csv">Download Gebeurtenissen per Gesprek</a></div>
+    <div><input type="submit" id="detailbackbutton" class="button" value="Previous" , data-bind="click: detailBackClicked"/></div>
     <div><input type="submit" id="backbutton" class="button" value="Back" , data-bind="click: backClicked"/></div>
-    <div><input type="submit" id="logout_button" class="button" value="Log out" /></div>
+
 </div>
 
 <div id="cdr_table" class="cdr_table" style='display: none'>

@@ -26,6 +26,9 @@ var prevData = null;
 var prevType = null;
 var eventData = null;
 
+var loginInfoKey = "elt_loginInfo";
+var loginInfo = {username: "", password: "", loggedIn: false};
+
 function AppViewModel() {
     this.companyOptions = ko.observable(["unknown"]);
     this.selectedCompanyOption = ko.observable("unknown");
@@ -40,11 +43,16 @@ function AppViewModel() {
 
     var self = this;
 
-    this.backClicked = function() {
-        console.log("back clicked");
+    this.detailBackClicked = function() {
+        console.log("Previous clicked in detail screen");
         if (prevData) {
             displayData(prevData, prevType);
         }
+    }
+
+    this.backClicked = function() {
+        console.log("back clicked");
+        location.reload();
     }
 
     this.callClicked = function(item) {
@@ -81,6 +89,23 @@ $(document).ready(function() {
         format: dateFormat
     });
 
+    var loginInfoStr = localStorage.getItem(loginInfoKey);
+    try {
+        if (loginInfoStr) loginInfo = JSON.parse(loginInfoStr);
+    } catch (e) {
+        console.log("Error occured trying to parse loginInfo: " + e);
+        loginInfo.loggedIn = false;
+    }
+    if (loginInfo.loggedIn) {
+        console.log("Was previously logged in. Automatically logging in as " + loginInfo.username);
+
+        PASS = loginInfo.password;
+        $('#login_username').val(loginInfo.username);
+        $('#login_password').val(loginInfo.password);
+
+        login(loginInfo.username, loginInfo.password);
+    }
+
     $('#login_form').submit(function() {
         var username = $('#login_username').val();
         var password = PASS = $('#login_password').val();
@@ -102,14 +127,16 @@ $(document).ready(function() {
     });
 
     $('#logout_button').click(function() {
+        loginInfo.loggedIn = false;
+        localStorage.setItem(loginInfoKey, JSON.stringify(loginInfo));
         location.reload();
     });
 
-    var username = localStorage ? localStorage.getItem('username') : null;
+    /*var username = localStorage ? localStorage.getItem('username') : null;
     if (username) {
         $('#login_username').val(username);
         //$('#login_server').val(localStorage.getItem('server'));
-    }
+    }*/
 
     // Activates knockout.js
     appViewModel = new AppViewModel();
@@ -151,6 +178,10 @@ function RestHelper(login, password) {
 
 var restHelper;
 function login(username, password) {
+
+
+    loginInfo = {username: username, password: password, loggedIn: true};
+    localStorage.setItem(loginInfoKey, JSON.stringify(loginInfo));
 
     restHelper = new RestHelper(username, password);
     restHelper.restAjaxRequest("company", null,
@@ -251,7 +282,7 @@ function retrieveResellerCompanies() {
        // Add all companies to the list.
     ], function(err, result) {
         if (err) {
-            console.log("Error occurred:" + err);
+            console.log("Error occurred while retrieving companies: " + err + " Probably, the user doesn't have rights under his reseller.");
             //errorMessage("An error occured while retrieving companies: \n" + err);
             return;
         }
@@ -430,11 +461,11 @@ function displayData(parsed, type) {
     $('#cdr_table').show();
 
     if (type == "calls") {
-        $('#backbutton').show();
+        $('#detailbackbutton').show();
     } else {
         prevData = parsed;
         prevType = type;
-        $('#backbutton').hide();
+        $('#detailbackbutton').hide();
     }
 }
 
