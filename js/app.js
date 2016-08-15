@@ -25,6 +25,7 @@ var appViewModel = null;
 var prevData = null;
 var prevType = null;
 var eventData = null;
+var userId = 0;
 
 var loginInfoKey = "elt_loginInfo";
 var loginInfo = {username: "", password: "", loggedIn: false, selectedCompanyOption: "unknown"};
@@ -161,12 +162,19 @@ function RestHelper(login, password) {
     var password = password;
 
     this.restAjaxRequest = function(relUrl, data, success, error, method) {
+
         parseLoginDeferred.done(function(relUrl, data, success, error, method) {
                 return function (parsedLoginArg) {
                     parsedLogin = parsedLoginArg;
 
                     authHeader = "Basic " + btoa(parsedLogin.rest_user + ":" + password);
-                    var url = "https://" + parsedLogin.rest_server + "/" + relUrl;
+
+                    var url = "";
+                    if (relUrl.indexOf("http") == -1) {
+                        url = "https://" + parsedLogin.rest_server + "/" + relUrl;
+                    } else {
+                        url = relUrl;
+                    }
 
                     $.ajax
                     ({
@@ -272,12 +280,16 @@ function retrieveResellerCompanies() {
         function(response, cb) {
             checkExistsInResponse(response, "entityId", cb);
             var user = response;
+            userId = user.entityId;
 
             restHelper.restAjaxRequest("user/" + user.entityId + "/reseller", null, function(response){
                 cb(null, response);         // success
             }, function(response){
                 cb(new Error(response));    // error
             });
+
+            // Also, now we got the user-id, retrieve other companies the user might have rights to.
+            retrieveOtherCompanies();
         },
 
         // Retrieve the Companies under the reseller.
@@ -291,7 +303,6 @@ function retrieveResellerCompanies() {
                 cb(new Error(response));    // error
             });
         },
-
        // Add all companies to the list.
     ], function(err, result) {
         if (err) {
@@ -310,10 +321,43 @@ function retrieveResellerCompanies() {
         }
         appViewModel.companyOptions(appViewModel.companyOptions());
 
-        // Select a specific company if it was previously selected.
-        if (loginInfo.selectedCompanyOption != "unknown") appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
-
         userLoggedIn();
+    });
+}
+
+// Retrieve other companies the user might have rights to.
+function retrieveOtherCompanies() {
+    console.log("Retrieving companies that the user might have direct rights on.");
+    restHelper.restAjaxRequest("user/" + userId + "/rights", null, function(response) {
+        async.each(response, function(right, cb) {
+            //if (right.target.indexOf("company") != -1) {
+                restHelper.restAjaxRequest(right.target, null, function(response){
+                    var company = response;
+                    addCompany(company);
+                    cb();
+                }, function(response){
+                    cb(new Error(response));    // error
+                });
+            /*} else {
+                cb();
+            }*/
+        }, function(err, results){
+            if (err) {
+                console.log("Error occurred while retrieving companies: " + err);
+                return;
+            }
+
+            // Refresh the list int the GUI
+            appViewModel.companyOptions(appViewModel.companyOptions());
+
+            // Select a specific company if it was previously selected.
+            if (loginInfo.selectedCompanyOption != "unknown") {
+                console.log("Trying to select company: " + loginInfo.selectedCompanyOption);
+                appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
+            }
+        });
+
+
     });
 }
 
