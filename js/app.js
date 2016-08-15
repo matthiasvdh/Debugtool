@@ -248,7 +248,12 @@ function addCompany(company) {
         console.warn("company " + JSON.stringify(company) + " not added to model because of missing values.");
     }
     console.log("Adding company " + companyName + " with id: " + companyId);
-    companyNameToId[companyName] = companyId;
+    if (companyNameToId[companyName]) {
+        console.log("Company " + companyName + " already added, not adding again");
+        return;
+    } else {
+        companyNameToId[companyName] = companyId;
+    }
 
     appViewModel.companyOptions().push(companyName);
 }
