@@ -46,6 +46,7 @@ function AppViewModel() {
 
     this.detailBackClicked = function() {
         console.log("Previous clicked in detail screen");
+        $('#downloadcalls').hide();
         if (prevData) {
             displayData(prevData, prevType);
         }
