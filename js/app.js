@@ -8,6 +8,7 @@ async = require("async");
 jQuery = $;
 resolveServer = require("./resolveServer.js").ResolveServer;
 
+
 var dateFormat = "D/MM/YYYY";
 var columnNames = {
     user: ['callid', 'parent_callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'identity_id', 'identity_name', 'direction', 'number'],
@@ -28,11 +29,12 @@ var eventData = null;
 var userId = 0;
 
 var loginInfoKey = "elt_loginInfo";
-var loginInfo = {username: "", password: "", loggedIn: false, selectedCompanyOption: "unknown"};
+var defaultCompanyOption = "No Access To Any Company";
+var loginInfo = {username: "", password: "", loggedIn: false, selectedCompanyOption: defaultCompanyOption};
 
 function AppViewModel() {
-    this.companyOptions = ko.observable(["unknown"]);
-    this.selectedCompanyOption = ko.observable("unknown");
+    this.companyOptions = ko.observable([defaultCompanyOption]);
+    this.selectedCompanyOption = ko.observable(defaultCompanyOption);
 
     this.activeListView = ko.observable([]);
     this.activeColumnNames = ko.observable([]);
@@ -133,7 +135,7 @@ $(document).ready(function() {
     $('#logout_button').click(function() {
         loginInfo.loggedIn = false;
         loginInfo.password = "";
-        loginInfo.selectedCompanyOption = "unknown";
+        loginInfo.selectedCompanyOption = defaultCompanyOption;
         saveLoginInfo();
         location.reload();
     });
@@ -177,6 +179,7 @@ function RestHelper(login, password) {
                         url = relUrl;
                     }
 
+                    console.log("Request to " + url);
                     $.ajax
                     ({
                         type: method || "GET",
@@ -198,6 +201,7 @@ function RestHelper(login, password) {
 
 var restHelper;
 function login(username, password) {
+    console.log("Logging in as " + username);
 
     loginInfo.username = username;
     loginInfo.password = password;
@@ -205,34 +209,9 @@ function login(username, password) {
     saveLoginInfo();
 
     restHelper = new RestHelper(username, password);
-    restHelper.restAjaxRequest("company", null,
-        companyReceived,
-        function(response) {
-            if (response.status != 404) {
-                console.log(response);
-                errorMessage("Login failed");
-                showLoginScreen();
-            } else {
-                // Reseller-users give a 404, since they're not associated with a single company. Retrieve valid companies for reseller in this case.
-                retrieveResellerCompanies();
-            }
-        }
-    );
+    retrieveOtherCompanies();
 }
 
-/*
- * - get /user
- * - /user/id/reseller
- * - /entity/id/entitiesFiltered?filter=company
- */
-
-function companyReceived(company) {
-    addCompany(company);
-    appViewModel.companyOptions([company.name]);
-    appViewModel.selectedCompanyOption(company.name);
-    retrieveResellerCompanies();
-    userLoggedIn();
-}
 
 function userLoggedIn() {
     loggedIn = true;
@@ -243,6 +222,10 @@ function userLoggedIn() {
 }
 
 function addCompany(company) {
+    // For the first time this function is called, delete the 'unknown' company option.
+    var unknownIndex = appViewModel.companyOptions().indexOf(defaultCompanyOption);
+    if (unknownIndex > -1) appViewModel.companyOptions().splice(unknownIndex,1);
+
     var companyId = company.entityId ;
     var companyName = company.name;
     if (!(companyId && companyName)) {
@@ -268,43 +251,13 @@ function checkExistsInResponse(response, key, cb) {
     return true;
 }
 
-function retrieveResellerCompanies(resellerId) {
-    console.log("Retrieving reseller companies.");
+function retrieveResellerCompanies(resellerUrlId, cb) {
+    console.log("Retrieving reseller companies for reseller " + resellerUrlId);
 
     async.waterfall([
-
-        // Retrieve the current user
-        function(cb) {
-
-            restHelper.restAjaxRequest("user", null, function(response){
-                cb(null, response);         // success
-            }, function(response){
-                cb(new Error(response));    // error
-            });
-        },
-
-        // Retrieve the reseller for the user.
-        function(response, cb) {
-            checkExistsInResponse(response, "entityId", cb);
-            var user = response;
-            userId = user.entityId;
-
-            restHelper.restAjaxRequest("user/" + user.entityId + "/reseller", null, function(response){
-                cb(null, response);         // success
-            }, function(response){
-                cb(new Error(response));    // error
-            });
-
-            // Also, now we got the user-id, retrieve other companies the user might have rights to.
-            retrieveOtherCompanies();
-        },
-
         // Retrieve the Companies under the reseller.
-        function(response, cb) {
-            checkExistsInResponse(response, "entityId", cb);
-            var reseller = response;
-
-            restHelper.restAjaxRequest("entity/" + reseller.entityId + "/entitiesFiltered?filter=company", null, function(response){
+        function(cb) {
+            restHelper.restAjaxRequest(resellerUrlId+"/entitiesFiltered?filter=company", null, function(response){
                 cb(null, response);         // success
             }, function(response){
                 cb(new Error(response));    // error
@@ -320,47 +273,59 @@ function retrieveResellerCompanies(resellerId) {
 
         var companies = result;
         // Allright, we should have the companies!
-        appViewModel.companyOptions([]); // Empty drop-down. New companies will be added through addCompany.
         for (var companyKey in companies) {
             var company = companies[companyKey];
             console.log(company);
             addCompany(company);
         }
 
-        userLoggedIn();
+        cb();
     });
 }
 
 // Retrieve other companies the user might have rights to.
 function retrieveOtherCompanies() {
-    console.log("Retrieving companies that the user might have direct rights on.");
-    restHelper.restAjaxRequest("user/" + userId + "/rights", null, function(response) {
-        async.each(response, function(right, cb) {
-            if (right.target.indexOf("company") != -1) {
-                restHelper.restAjaxRequest(right.target, null, function(response){
-                    var company = response;
-                    addCompany(company);
-                    cb();
-                }, function(response){
-                    cb(new Error(response));    // error
-                });
-            } else {
-                cb();
-            }
-        }, function(err, results){
-            if (err) {
-                console.log("Error occurred while retrieving companies: " + err);
-                return;
-            }
+    console.log("Retrieving companies and resellers that the user might have rights on.");
 
-            // Select a specific company if it was previously selected.
-            if (loginInfo.selectedCompanyOption != "unknown") {
-                console.log("Trying to select company: " + loginInfo.selectedCompanyOption);
-                appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
-            }
+    restHelper.restAjaxRequest("user", null, function(response){
+        checkExistsInResponse(response, "entityId", function(){});
+        var user = response;
+        userId = user.entityId;
+
+        restHelper.restAjaxRequest("user/" + userId + "/rights", null, function(response) {
+            async.each(response, function(right, cb) {
+                if (right.target.indexOf("company") != -1) {
+                    restHelper.restAjaxRequest(right.target, null, function(response){
+                        var company = response;
+                        addCompany(company);
+                        cb();
+                    }, function(response){
+                        cb(new Error(response));    // error
+                    });
+                } else if (right.target.indexOf("reseller") != -1){
+                    retrieveResellerCompanies(right.target, cb);
+                } else {
+                    cb();
+                }
+            }, function(err, results){
+                if (err) {
+                    console.log("Error occurred while retrieving companies: " + err);
+                    return;
+                }
+
+                // We're logged in!
+                userLoggedIn();
+
+                // Select a specific company if it was previously selected.
+                if (loginInfo.selectedCompanyOption != defaultCompanyOption) {
+                    console.log("Trying to select company: " + loginInfo.selectedCompanyOption);
+                    appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
+                }
+            });
         });
 
-
+    }, function (response) {
+        errorMessage("Couldn't retrieve /user. Try logging in again, or report this error.");
     });
 }
 
@@ -374,6 +339,10 @@ function doDownloadCdr(type) {
     saveLoginInfo();
 
     console.log("Downloading CDRs for company " + companyId + " and date " + fromTimestamp);
+    if (appViewModel.selectedCompanyOption() == defaultCompanyOption) {
+        errorMessage("It seems that you don't have read-rights on any company. Ask the company administrator for the required access level.");
+        return;
+    }
     if (isNaN(companyId)) {
         errorMessage("Enter a valid number in the Company-id field.");
         return;
