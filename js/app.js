@@ -428,8 +428,7 @@ function processData(responseText, type) {
 
     // Parse the CSV
     var papaObj = Papa.parse(responseText, {
-        header: true,
-        dynamicTyping: true
+        header: true
     });
     var parsed = papaObj.data;
     // Remove the last, almost empty, element.
