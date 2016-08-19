@@ -14,6 +14,7 @@ var columnNames = {
     user: ['callid', 'parent_callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'identity_id', 'identity_name', 'direction', 'number'],
     queue: ['callid', 'start_time', 'timezone', 'wait_duration', 'agent_duration', 'queue_id', 'queue_name', 'agent_id', 'agent_name', 'from_number'],
     company: ['callid', 'start_time', 'answer_time', 'end_time', 'timezone', 'from_type', 'from_id', 'from_number', 'from_number', 'from_name', 'to_number', 'end_reason'],
+    userevents: ['id','timestamp','company_id','company_name','event_type','event_data','user_id','user_name','user_fullname','identity_id','identity_name','target_type','target_id','target_name'],
     calls: ['id', 'company_id', 'call_id', 'parent_id', 'step', 'timestamp', 'caller_type', 'caller_id', 'caller_number', 'caller_desc', 'callee_type', 'callee_number', 'callee_desc', 'state', 'end_reason']
 }
 
@@ -130,6 +131,9 @@ $(document).ready(function() {
     });
     $('#download_button_company').click(function() {
         _.delay(doDownloadCdr, 0, "company");
+    });
+    $('#download_button_userevents').click(function() {
+        _.delay(doDownloadCdr, 0, "userevents");
     });
 
     $('#logout_button').click(function() {
@@ -355,20 +359,17 @@ function doDownloadCdr(type) {
             var cdrDownloadUrl = getCdrDownloadUrl(companyId, fromTimestamp, type);
             downloadFromUrl(cdrDownloadUrl, type);
             break;
+        case "userevents":
+            var fromTimestampSeconds = fromDate.unix();
+            var toTimestampSeconds = fromTimestampSeconds + 86400;
+            var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestampSeconds, toTimestampSeconds, "users");
+            downloadFromUrl(userEventDownloadUrl, type);
+            break;
 
         default:
             errorMessage("Asked to download an unknown type: " + type);
             return;
     }
-
-    // Call-events
-    //var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "calls");
-    //downloadFromUrl(userEventDownloadUrl, "calls");
-
-    // User-events
-    //var userEventDownloadUrl = getEventDownloadUrl(companyId, fromTimestamp, toTimestamp, "users");
-    //downloadFromUrl(userEventDownloadUrl, "user");
-
 }
 
 /**
