@@ -257,6 +257,7 @@ function addCompany(company) {
     }
 
     appViewModel.companyOptions().push(companyName);
+    appViewModel.companyOptions(appViewModel.companyOptions().sort());
 }
 
 function checkExistsInResponse(response, key, cb) {
@@ -325,7 +326,6 @@ function retrieveResellerCompanies(resellerId) {
             console.log(company);
             addCompany(company);
         }
-        appViewModel.companyOptions(appViewModel.companyOptions());
 
         userLoggedIn();
     });
@@ -352,9 +352,6 @@ function retrieveOtherCompanies() {
                 console.log("Error occurred while retrieving companies: " + err);
                 return;
             }
-
-            // Refresh the list int the GUI
-            appViewModel.companyOptions(appViewModel.companyOptions());
 
             // Select a specific company if it was previously selected.
             if (loginInfo.selectedCompanyOption != "unknown") {
