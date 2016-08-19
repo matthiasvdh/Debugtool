@@ -267,7 +267,7 @@ function checkExistsInResponse(response, key, cb) {
     return true;
 }
 
-function retrieveResellerCompanies() {
+function retrieveResellerCompanies(resellerId) {
     console.log("Retrieving reseller companies.");
 
     async.waterfall([
@@ -336,7 +336,7 @@ function retrieveOtherCompanies() {
     console.log("Retrieving companies that the user might have direct rights on.");
     restHelper.restAjaxRequest("user/" + userId + "/rights", null, function(response) {
         async.each(response, function(right, cb) {
-            //if (right.target.indexOf("company") != -1) {
+            if (right.target.indexOf("company") != -1) {
                 restHelper.restAjaxRequest(right.target, null, function(response){
                     var company = response;
                     addCompany(company);
@@ -344,9 +344,9 @@ function retrieveOtherCompanies() {
                 }, function(response){
                     cb(new Error(response));    // error
                 });
-            /*} else {
+            } else {
                 cb();
-            }*/
+            }
         }, function(err, results){
             if (err) {
                 console.log("Error occurred while retrieving companies: " + err);
