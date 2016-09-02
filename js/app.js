@@ -258,6 +258,22 @@ function checkExistsInResponse(response, key, cb) {
 function retrieveResellerCompanies(resellerUrlId, cb) {
     console.log("Retrieving reseller companies for reseller " + resellerUrlId);
 
+    restHelper.restAjaxRequest(resellerUrlId+"/entitiesFiltered?filter=reseller", null, function(response){
+        var resellers = response;
+        for (var resellerKey in resellers) {
+            var reseller = resellers[resellerKey];
+            console.log("Also retrieving companies for reseller: " + reseller.self );
+            retrieveResellerCompanies(reseller.self, function(err, result) {
+               if (err) {
+                   cb(err);
+                   return;
+               }
+            });
+        }
+    }, function(response) {
+        cb(new Error(response));
+    });
+
     async.waterfall([
         // Retrieve the Companies under the reseller.
         function(cb) {
