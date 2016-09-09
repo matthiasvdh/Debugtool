@@ -331,11 +331,7 @@ function retrieveResellerCompanies(resellerUrlId, cb) {
     });
 }
 
-// Retrieve other companies the user might have rights to.
-function retrieveCompanies() {
-
-    console.log("Retrieving companies and resellers that the user might have rights on.");
-
+function retrieveCompaniesFromCacheIfRecent() {
     // Caching
     var companyCacheObj = getCompanyCache();
     if (companyCacheObj) {
@@ -348,10 +344,19 @@ function retrieveCompanies() {
             //console.log ("---- companyCacheObj:")
             //console.log(companyCacheObj);
             doneRetrievingCompanies();
-            return;
+            return true;
         }
     }
 
+    return false;
+}
+
+// Retrieve other companies the user might have rights to.
+function retrieveCompanies() {
+
+    console.log("Retrieving companies and resellers that the user might have rights on.");
+
+    if (retrieveCompaniesFromCacheIfRecent()) return; // We got the companies from the Cache. Don't continue retrieving them.
 
     restHelper.restAjaxRequest("user", null, function(response){
         checkExistsInResponse(response, "entityId", function(){});
