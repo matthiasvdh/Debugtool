@@ -19,7 +19,7 @@ var columnNames = {
 }
 
 var COMPANYCACHEKEY = "eventLogTool_companyCache";
-var COMPANYCACHEREFRESHAGE = 100000;
+var COMPANYCACHEREFRESHAGE = 1200000;
 
 var parseLoginDeferred = null;
 var parsedLogin = null;
@@ -144,6 +144,11 @@ $(document).ready(function() {
     $('#logout_button').click(function() {
         localStorage.clear();
         location.reload();
+    });
+
+    $('#button_refresh_companies').click(function() {
+        clearCompanyCache();
+        retrieveCompanies();
     });
 
     /*var username = localStorage ? localStorage.getItem('username') : null;
@@ -273,6 +278,8 @@ function getCompanyCache() {
 
 function clearCompanyCache() {
     localStorage.setItem(COMPANYCACHEKEY, null);
+    companyNameToId = {};
+    appViewModel.companyOptions([]);
 }
 
 function checkExistsInResponse(response, key, cb) {
