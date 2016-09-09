@@ -18,6 +18,9 @@ var columnNames = {
     calls: ['id', 'company_id', 'call_id', 'parent_id', 'step', 'timestamp', 'caller_type', 'caller_id', 'caller_number', 'caller_desc', 'callee_type', 'callee_number', 'callee_desc', 'state', 'end_reason']
 }
 
+var COMPANYCACHEKEY = "eventLogTool_companyCache";
+var COMPANYCACHEREFRESHAGE = 100000;
+
 var parseLoginDeferred = null;
 var parsedLogin = null;
 var loggedIn = false;
@@ -42,6 +45,8 @@ function AppViewModel() {
     this.selectedCallId = ko.observable(null);
 
     this.selectedCompanyId = ko.computed(function() {
+        //console.log ("---- computing selectedCompanyId, companyNameToId:")
+        //console.log(companyNameToId);
         return companyNameToId[this.selectedCompanyOption()];
     }, this);
 
@@ -137,10 +142,7 @@ $(document).ready(function() {
     });
 
     $('#logout_button').click(function() {
-        loginInfo.loggedIn = false;
-        loginInfo.password = "";
-        loginInfo.selectedCompanyOption = defaultCompanyOption;
-        saveLoginInfo();
+        localStorage.clear();
         location.reload();
     });
 
@@ -167,15 +169,15 @@ function RestHelper(login, password) {
 
     parseLoginDeferred = resolveServer.parseLogin(login);
     var password = password;
+    parseLoginDeferred.done(function(parsedLoginArg) {
+        parsedLogin = parsedLoginArg;
+        authHeader = "Basic " + btoa(parsedLogin.rest_user + ":" + password);
+    });
 
     this.restAjaxRequest = function(relUrl, data, success, error, method) {
 
         parseLoginDeferred.done(function(relUrl, data, success, error, method) {
-                return function (parsedLoginArg) {
-                    parsedLogin = parsedLoginArg;
-
-                    authHeader = "Basic " + btoa(parsedLogin.rest_user + ":" + password);
-
+                return function () {
                     var url = "";
                     if (relUrl.indexOf("http") == -1) {
                         url = "https://" + parsedLogin.rest_server + "/" + relUrl;
@@ -213,7 +215,7 @@ function login(username, password) {
     saveLoginInfo();
 
     restHelper = new RestHelper(username, password);
-    retrieveOtherCompanies();
+    _.delay(retrieveCompanies,0);
 }
 
 
@@ -245,6 +247,32 @@ function addCompany(company) {
 
     appViewModel.companyOptions().push(companyName);
     appViewModel.companyOptions(appViewModel.companyOptions().sort());
+
+    storeCompanyCacheDebounced();
+}
+
+var storeCompanyCacheDebounced = _.debounce(storeCompanyCache, 2000); // No new companies for two seconds? Store the current list as cache.
+
+function storeCompanyCache() {
+    var companyCacheObj = { timestamp: Date.now(), companies: appViewModel.companyOptions(), companyNameToId: companyNameToId};
+    console.log("Storing company cache at timestamp: " + companyCacheObj.timestamp);
+    localStorage.setItem(COMPANYCACHEKEY, JSON.stringify(companyCacheObj));
+}
+
+function getCompanyCache() {
+    var companyCacheStr = localStorage.getItem(COMPANYCACHEKEY);
+    if (!companyCacheStr || companyCacheStr == "") return null;
+
+    try {
+        return JSON.parse(companyCacheStr);
+    } catch(error) {
+        console.log("Error occured trying to parse companyCache json:" + error);
+        return null;
+    }
+}
+
+function clearCompanyCache() {
+    localStorage.setItem(COMPANYCACHEKEY, null);
 }
 
 function checkExistsInResponse(response, key, cb) {
@@ -304,8 +332,26 @@ function retrieveResellerCompanies(resellerUrlId, cb) {
 }
 
 // Retrieve other companies the user might have rights to.
-function retrieveOtherCompanies() {
+function retrieveCompanies() {
+
     console.log("Retrieving companies and resellers that the user might have rights on.");
+
+    // Caching
+    var companyCacheObj = getCompanyCache();
+    if (companyCacheObj) {
+        var age = Date.now() - companyCacheObj.timestamp;
+        console.log("Company cache age is " + age + "ms.");
+        if (age < COMPANYCACHEREFRESHAGE) {
+            console.log("Cache more recent than " + COMPANYCACHEREFRESHAGE / 1000 + "s... Not retrieving companies again.");
+            companyNameToId = companyCacheObj.companyNameToId;
+            appViewModel.companyOptions(companyCacheObj.companies);
+            //console.log ("---- companyCacheObj:")
+            //console.log(companyCacheObj);
+            doneRetrievingCompanies();
+            return;
+        }
+    }
+
 
     restHelper.restAjaxRequest("user", null, function(response){
         checkExistsInResponse(response, "entityId", function(){});
@@ -333,20 +379,24 @@ function retrieveOtherCompanies() {
                     return;
                 }
 
-                // We're logged in!
-                userLoggedIn();
-
-                // Select a specific company if it was previously selected.
-                if (loginInfo.selectedCompanyOption != defaultCompanyOption) {
-                    console.log("Trying to select company: " + loginInfo.selectedCompanyOption);
-                    appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
-                }
+                doneRetrievingCompanies();
             });
         });
 
     }, function (response) {
         errorMessage("Couldn't retrieve /user. Try logging in again, or report this error.");
     });
+}
+
+function doneRetrievingCompanies() {
+    // We're logged in!
+    userLoggedIn();
+
+    // Select a specific company if it was previously selected.
+    if (loginInfo.selectedCompanyOption != defaultCompanyOption) {
+        console.log("Trying to select company: " + loginInfo.selectedCompanyOption);
+        appViewModel.selectedCompanyOption(loginInfo.selectedCompanyOption);
+    }
 }
 
 function doDownloadCdr(type) {
