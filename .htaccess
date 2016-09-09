@@ -1,0 +1,5 @@
+FileETag None
+Header unset ETag 
+
+ExpiresActive On
+ExpiresDefault "access plus 5 minutes"
