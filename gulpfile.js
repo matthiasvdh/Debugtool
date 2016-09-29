@@ -18,6 +18,7 @@ gulp.task('browserify', function() {
 
 gulp.task('copy', function() {
     gulp.src(['*.html']).pipe(gulp.dest(destination));
+    gulp.src(['.htaccess']).pipe(gulp.dest(destination));
     gulp.src(["node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css"]).pipe(gulp.dest(destination));
     gulp.src(["css/*.css"]).pipe(gulp.dest(destination));
 })
