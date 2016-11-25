@@ -20,7 +20,7 @@ var columnNames = {
 }
 
 var COMPANYCACHEKEY = "eventLogTool_companyCache";
-var COMPANYCACHEREFRESHAGE = 1200000;
+var COMPANYCACHEREFRESHAGE = 86400 * 365 * 1000; // 1yr
 
 var parseLoginDeferred = null;
 var parsedLogin = null;
