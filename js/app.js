@@ -553,7 +553,7 @@ function processData(responseText, type) {
 
     var endTime = Date.now();
     console.log("Parsing of " + size + " elements took: " + (endTime - startTime) + "ms");
-
+    
     displayData(parsed, type);
 }
 
@@ -578,12 +578,21 @@ function displayData(parsed, type) {
     $('#downloadlinks').show();
     $('#download'+type).show();
 
-    // List-view
-    $('#cdr_table').hide();
-    appViewModel.activeListView([]);
-    appViewModel.activeColumnNames(columnNames[type]);
-    appViewModel.activeListView(parsed);
-    $('#cdr_table').show();
+    switch (type) {
+        case "userevents":
+        case "callevents":
+            break;
+        default:
+
+            // List-view
+            $('#cdr_table').hide();
+            appViewModel.activeListView([]);
+            appViewModel.activeColumnNames(columnNames[type]);
+            appViewModel.activeListView(parsed);
+            $('#cdr_table').show();
+
+            break;
+    }
 
     if (type == "calls") {
         $('#detailbackbutton').show();
